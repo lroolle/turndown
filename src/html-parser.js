@@ -2,7 +2,7 @@
  * Set up window for Node.js
  */
 
-var root = (typeof window !== 'undefined' ? window : {})
+var root = (typeof window !== 'undefined' ? window : (typeof self !== 'undefined' ? self : {}))
 
 /*
  * Parsing HTML strings
