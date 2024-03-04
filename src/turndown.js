@@ -1,53 +1,53 @@
-import COMMONMARK_RULES from './commonmark-rules'
-import Rules from './rules'
-import { extend, trimLeadingNewlines, trimTrailingNewlines } from './utilities'
-import RootNode from './root-node'
-import Node from './node'
-var reduce = Array.prototype.reduce
+import COMMONMARK_RULES from "./commonmark-rules";
+import Rules from "./rules";
+import { extend, trimLeadingNewlines, trimTrailingNewlines } from "./utilities";
+import RootNode from "./root-node";
+import Node from "./node";
+var reduce = Array.prototype.reduce;
 var escapes = [
-  [/\\/g, '\\\\'],
-  [/\*/g, '\\*'],
-  [/^-/g, '\\-'],
-  [/^\+ /g, '\\+ '],
-  [/^(=+)/g, '\\$1'],
-  [/^(#{1,6}) /g, '\\$1 '],
-  [/`/g, '\\`'],
-  [/^~~~/g, '\\~~~'],
-  [/\[/g, '\\['],
-  [/\]/g, '\\]'],
-  [/^>/g, '\\>'],
-  [/_/g, '\\_'],
-  [/^(\d+)\. /g, '$1\\. ']
-]
+  [/\\/g, "\\\\"],
+  [/\*/g, "\\*"],
+  [/^-/g, "\\-"],
+  [/^\+ /g, "\\+ "],
+  [/^(=+)/g, "\\$1"],
+  [/^(#{1,6}) /g, "\\$1 "],
+  [/`/g, "\\`"],
+  [/^~~~/g, "\\~~~"],
+  [/\[/g, "\\["],
+  [/\]/g, "\\]"],
+  [/^>/g, "\\>"],
+  [/_/g, "\\_"],
+  [/^(\d+)\. /g, "$1\\. "],
+];
 
-export default function TurndownService (options) {
-  if (!(this instanceof TurndownService)) return new TurndownService(options)
+export default function TurndownService(options) {
+  if (!(this instanceof TurndownService)) return new TurndownService(options);
 
   var defaults = {
     rules: COMMONMARK_RULES,
-    headingStyle: 'setext',
-    hr: '* * *',
-    bulletListMarker: '*',
-    codeBlockStyle: 'indented',
-    fence: '```',
-    emDelimiter: '_',
-    strongDelimiter: '**',
-    linkStyle: 'inlined',
-    linkReferenceStyle: 'full',
-    br: '  ',
+    headingStyle: "setext",
+    hr: "* * *",
+    bulletListMarker: "*",
+    codeBlockStyle: "indented",
+    fence: "```",
+    emDelimiter: "_",
+    strongDelimiter: "**",
+    linkStyle: "inlined",
+    linkReferenceStyle: "full",
+    br: "  ",
     preformattedCode: false,
     blankReplacement: function (content, node) {
-      return node.isBlock ? '\n\n' : ''
+      return node.isBlock ? "\n\n" : "";
     },
     keepReplacement: function (content, node) {
-      return node.isBlock ? '\n\n' + node.outerHTML + '\n\n' : node.outerHTML
+      return node.isBlock ? "\n\n" + node.outerHTML + "\n\n" : node.outerHTML;
     },
     defaultReplacement: function (content, node) {
-      return node.isBlock ? '\n\n' + content + '\n\n' : content
-    }
-  }
-  this.options = extend({}, defaults, options)
-  this.rules = new Rules(this.options)
+      return node.isBlock ? "\n\n" + content + "\n\n" : content;
+    },
+  };
+  this.options = extend({}, defaults, options);
+  this.rules = new Rules(this.options);
 }
 
 TurndownService.prototype = {
@@ -62,14 +62,23 @@ TurndownService.prototype = {
   turndown: function (input) {
     if (!canConvert(input)) {
       throw new TypeError(
-        input + ' is not a string, or an element/document/fragment node.'
-      )
+        input + " is not a string, or an element/document/fragment node.",
+      );
     }
 
-    if (input === '') return ''
+    if (input === "") return "";
 
-    var output = process.call(this, new RootNode(input, this.options))
-    return postProcess.call(this, output)
+    var output = process.call(this, new RootNode(input, this.options));
+    return postProcess.call(this, output);
+  },
+
+  turndownDoc: function (docInput) {
+    // if (!(docInput instanceof RootNode)) {
+    //   throw new TypeError("Expected input to be an instance of RootNode");
+    // }
+
+    var output = process.call(this, docInput);
+    return postProcess.call(this, output);
   },
 
   /**
@@ -82,13 +91,13 @@ TurndownService.prototype = {
 
   use: function (plugin) {
     if (Array.isArray(plugin)) {
-      for (var i = 0; i < plugin.length; i++) this.use(plugin[i])
-    } else if (typeof plugin === 'function') {
-      plugin(this)
+      for (var i = 0; i < plugin.length; i++) this.use(plugin[i]);
+    } else if (typeof plugin === "function") {
+      plugin(this);
     } else {
-      throw new TypeError('plugin must be a Function or an Array of Functions')
+      throw new TypeError("plugin must be a Function or an Array of Functions");
     }
-    return this
+    return this;
   },
 
   /**
@@ -101,8 +110,8 @@ TurndownService.prototype = {
    */
 
   addRule: function (key, rule) {
-    this.rules.add(key, rule)
-    return this
+    this.rules.add(key, rule);
+    return this;
   },
 
   /**
@@ -114,8 +123,8 @@ TurndownService.prototype = {
    */
 
   keep: function (filter) {
-    this.rules.keep(filter)
-    return this
+    this.rules.keep(filter);
+    return this;
   },
 
   /**
@@ -127,8 +136,8 @@ TurndownService.prototype = {
    */
 
   remove: function (filter) {
-    this.rules.remove(filter)
-    return this
+    this.rules.remove(filter);
+    return this;
   },
 
   /**
@@ -141,10 +150,10 @@ TurndownService.prototype = {
 
   escape: function (string) {
     return escapes.reduce(function (accumulator, escape) {
-      return accumulator.replace(escape[0], escape[1])
-    }, string)
-  }
-}
+      return accumulator.replace(escape[0], escape[1]);
+    }, string);
+  },
+};
 
 /**
  * Reduces a DOM node down to its Markdown string equivalent
@@ -154,20 +163,26 @@ TurndownService.prototype = {
  * @type String
  */
 
-function process (parentNode) {
-  var self = this
-  return reduce.call(parentNode.childNodes, function (output, node) {
-    node = new Node(node, self.options)
+function process(parentNode) {
+  var self = this;
+  return reduce.call(
+    parentNode.childNodes,
+    function (output, node) {
+      node = new Node(node, self.options);
 
-    var replacement = ''
-    if (node.nodeType === 3) {
-      replacement = node.isCode ? node.nodeValue : self.escape(node.nodeValue)
-    } else if (node.nodeType === 1) {
-      replacement = replacementForNode.call(self, node)
-    }
+      var replacement = "";
+      if (node.nodeType === 3) {
+        replacement = node.isCode
+          ? node.nodeValue
+          : self.escape(node.nodeValue);
+      } else if (node.nodeType === 1) {
+        replacement = replacementForNode.call(self, node);
+      }
 
-    return join(output, replacement)
-  }, '')
+      return join(output, replacement);
+    },
+    "",
+  );
 }
 
 /**
@@ -178,15 +193,15 @@ function process (parentNode) {
  * @type String
  */
 
-function postProcess (output) {
-  var self = this
+function postProcess(output) {
+  var self = this;
   this.rules.forEach(function (rule) {
-    if (typeof rule.append === 'function') {
-      output = join(output, rule.append(self.options))
+    if (typeof rule.append === "function") {
+      output = join(output, rule.append(self.options));
     }
-  })
+  });
 
-  return output.replace(/^[\t\r\n]+/, '').replace(/[\t\r\n\s]+$/, '')
+  return output.replace(/^[\t\r\n]+/, "").replace(/[\t\r\n\s]+$/, "");
 }
 
 /**
@@ -197,16 +212,16 @@ function postProcess (output) {
  * @type String
  */
 
-function replacementForNode (node) {
-  var rule = this.rules.forNode(node)
-  var content = process.call(this, node)
-  var whitespace = node.flankingWhitespace
-  if (whitespace.leading || whitespace.trailing) content = content.trim()
+function replacementForNode(node) {
+  var rule = this.rules.forNode(node);
+  var content = process.call(this, node);
+  var whitespace = node.flankingWhitespace;
+  if (whitespace.leading || whitespace.trailing) content = content.trim();
   return (
     whitespace.leading +
     rule.replacement(content, node, this.options) +
     whitespace.trailing
-  )
+  );
 }
 
 /**
@@ -218,13 +233,13 @@ function replacementForNode (node) {
  * @type String
  */
 
-function join (output, replacement) {
-  var s1 = trimTrailingNewlines(output)
-  var s2 = trimLeadingNewlines(replacement)
-  var nls = Math.max(output.length - s1.length, replacement.length - s2.length)
-  var separator = '\n\n'.substring(0, nls)
+function join(output, replacement) {
+  var s1 = trimTrailingNewlines(output);
+  var s2 = trimLeadingNewlines(replacement);
+  var nls = Math.max(output.length - s1.length, replacement.length - s2.length);
+  var separator = "\n\n".substring(0, nls);
 
-  return s1 + separator + s2
+  return s1 + separator + s2;
 }
 
 /**
@@ -235,13 +250,13 @@ function join (output, replacement) {
  * @type String|Object|Array|Boolean|Number
  */
 
-function canConvert (input) {
+function canConvert(input) {
   return (
-    input != null && (
-      typeof input === 'string' ||
-      (input.nodeType && (
-        input.nodeType === 1 || input.nodeType === 9 || input.nodeType === 11
-      ))
-    )
-  )
+    input != null &&
+    (typeof input === "string" ||
+      (input.nodeType &&
+        (input.nodeType === 1 ||
+          input.nodeType === 9 ||
+          input.nodeType === 11)))
+  );
 }
